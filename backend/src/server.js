@@ -1,4 +1,4 @@
-
+const connectDB = require("./config/db");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -17,6 +17,16 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Gagal konek database:", error.message);
+    res.status(500).json({ success: false, message: "Database tidak terhubung" });
+  }
+});
 
 app.get("/api", (req, res) => {
   res.json({

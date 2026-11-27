@@ -1,139 +1,115 @@
+const mongoose = require("mongoose");
+const Journal = require("../models/Journal");
 
-let journals = [
-    {
-        id: 1,
-        date: "2026-11-27",
-        activity: "Mempelajari React.js",
-        description: "Mempelajari props dan implikasi useEffect",
-        result: "Aku jadi mengerti",
-        status: "approved"
-    }
-];
+const notFound = (res) =>
+  res.status(404).json({ success: false, message: "Jurnal tidak ditemukan" });
+
+const serverError = (res, message) =>
+  res.status(500).json({ success: false, message });
 
 // GET semua jurnal
-const getJournals = (req, res) => {
-    res.json({
-        success: true,
-        data: journals
-    });
+const getJournals = async (req, res) => {
+  try {
+    const journals = await Journal.find().sort({ createdAt: 1 });
+    res.json({ success: true, data: journals });
+  } catch (error) {
+    serverError(res, "Gagal mengambil jurnal");
+  }
 };
 
 // GET satu jurnal
-const getJournalById = (req, res) => {
-    const journal = journals.find(
-        item => item.id === Number(req.params.id)
-    );
+const getJournalById = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
 
-    if (!journal) {
-        return res.status(404).json({
-            success: false,
-            message: "Jurnal tidak ditemukan"
-        });
-    }
+    const journal = await Journal.findById(req.params.id);
+    if (!journal) return notFound(res);
 
-    res.json({
-        success: true,
-        data: journal
-    });
+    res.json({ success: true, data: journal });
+  } catch (error) {
+    serverError(res, "Gagal mengambil jurnal");
+  }
 };
 
 // POST tambah jurnal
-const createJournal = (req, res) => {
+const createJournal = async (req, res) => {
+  try {
     const { date, activity, description, result } = req.body;
 
     if (!date || !activity || !description || !result) {
-        return res.status(400).json({
-            success: false,
-            message: "Semua field wajib diisi"
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Semua field wajib diisi",
+      });
     }
 
-    const newJournal = {
-        id: Date.now(),
-        date,
-        activity,
-        description,
-        result,
-        status: "pending"
-    };
-
-    journals.push(newJournal);
+    const newJournal = await Journal.create({
+      date,
+      activity,
+      description,
+      result,
+    });
 
     res.status(201).json({
-        success: true,
-        message: "Jurnal berhasil ditambahkan",
-        data: newJournal
+      success: true,
+      message: "Jurnal berhasil ditambahkan",
+      data: newJournal,
     });
+  } catch (error) {
+    serverError(res, "Gagal menambahkan jurnal");
+  }
 };
 
 // PUT edit jurnal
-const updateJournal = (req, res) => {
-    const id = Number(req.params.id);
-
-    const index = journals.findIndex(
-        item => item.id === id
-    );
-
-    if (index === -1) {
-        return res.status(404).json({
-            success: false,
-            message: "Jurnal tidak ditemukan"
-        });
-    }
+const updateJournal = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
 
     const { date, activity, description, result } = req.body;
 
     if (!date || !activity || !description || !result) {
-        return res.status(400).json({
-            success: false,
-            message: "Semua field wajib diisi"
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Semua field wajib diisi",
+      });
     }
 
-    journals[index] = {
-        ...journals[index],
-        date,
-        activity,
-        description,
-        result
-    };
+    const journal = await Journal.findByIdAndUpdate(
+      req.params.id,
+      { date, activity, description, result },
+      { new: true, runValidators: true }
+    );
+
+    if (!journal) return notFound(res);
 
     res.json({
-        success: true,
-        message: "Jurnal berhasil diperbarui",
-        data: journals[index]
+      success: true,
+      message: "Jurnal berhasil diperbarui",
+      data: journal,
     });
+  } catch (error) {
+    serverError(res, "Gagal memperbarui jurnal");
+  }
 };
 
 // DELETE jurnal
-const deleteJournal = (req, res) => {
-    const id = Number(req.params.id);
+const deleteJournal = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
 
-    const exists = journals.some(
-        item => item.id === id
-    );
+    const journal = await Journal.findByIdAndDelete(req.params.id);
+    if (!journal) return notFound(res);
 
-    if (!exists) {
-        return res.status(404).json({
-            success: false,
-            message: "Jurnal tidak ditemukan"
-        });
-    }
-
-    journals = journals.filter(
-        item => item.id !== id
-    );
-
-    res.json({
-        success: true,
-        message: "Jurnal berhasil dihapus"
-    });
+    res.json({ success: true, message: "Jurnal berhasil dihapus" });
+  } catch (error) {
+    serverError(res, "Gagal menghapus jurnal");
+  }
 };
 
 module.exports = {
-    getJournals,
-    getJournalById,
-    createJournal,
-    updateJournal,
-    deleteJournal
+  getJournals,
+  getJournalById,
+  createJournal,
+  updateJournal,
+  deleteJournal,
 };
