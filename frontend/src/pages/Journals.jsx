@@ -5,7 +5,9 @@ import {
   Pencil,
   Trash2,
   X,
-  BookOpen
+  BookOpen,
+  Check,
+  Ban
 } from "lucide-react";
 
 const API_URL = `${import.meta.env.VITE_API_URL}/api/journals`;
@@ -142,6 +144,32 @@ function Journals() {
 
     } catch (err) {
       setError(err.message || "Gagal menghapus jurnal.");
+    }
+  };
+
+  // Ubah status jurnal
+  const handleStatus = async (id, status) => {
+    try {
+      setError("");
+
+      const response = await fetch(`${API_URL}/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message);
+      }
+
+      await fetchJournals();
+
+    } catch (err) {
+      setError(err.message || "Gagal mengubah status.");
     }
   };
 
@@ -300,11 +328,32 @@ function Journals() {
                       <span className={`status ${journal.status}`}>
                         {journal.status === "approved"
                           ? "Disetujui"
-                          : "Menunggu"}
+                          : journal.status === "rejected"
+                            ? "Ditolak"
+                            : "Menunggu"}
                       </span>
                     </td>
                     <td>
                       <div className="journal-actions">
+                        {journal.status !== "approved" && (
+                          <button
+                            className="approve-button"
+                            onClick={() => handleStatus(journal.id, "approved")}
+                            title="Setujui"
+                          >
+                            <Check size={16} />
+                          </button>
+                        )}
+
+                        {journal.status !== "rejected" && (
+                          <button
+                            className="reject-button"
+                            onClick={() => handleStatus(journal.id, "rejected")}
+                            title="Tolak"
+                          >
+                            <Ban size={16} />
+                          </button>
+                        )}
                         <button
                           className="edit-button"
                           onClick={() => handleEdit(journal)}

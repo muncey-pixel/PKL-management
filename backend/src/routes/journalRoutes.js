@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 
@@ -7,6 +6,7 @@ const {
   getJournalById,
   createJournal,
   updateJournal,
+  updateJournalStatus,
   deleteJournal
 } = require("../controllers/journalController");
 
@@ -21,6 +21,9 @@ router.post("/", createJournal);
 
 // PUT edit jurnal
 router.put("/:id", updateJournal);
+
+// PATCH ubah status jurnal
+router.patch("/:id/status", updateJournalStatus);
 
 // DELETE jurnal
 router.delete("/:id", deleteJournal);

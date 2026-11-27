@@ -944,3 +944,34 @@
     padding: 16px;
   }
 }
+
+.status.pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status.rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.approve-button,
+.reject-button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.approve-button {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.reject-button {
+  background: #fee2e2;
+  color: #b91c1c;
+}

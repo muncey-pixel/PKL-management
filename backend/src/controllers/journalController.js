@@ -106,10 +106,44 @@ const deleteJournal = async (req, res) => {
   }
 };
 
+// PATCH ubah status jurnal
+const updateJournalStatus = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
+
+    const { status } = req.body;
+    const allowed = ["pending", "approved", "rejected"];
+
+    if (!allowed.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status tidak valid",
+      });
+    }
+
+    const journal = await Journal.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!journal) return notFound(res);
+
+    res.json({
+      success: true,
+      message: "Status jurnal diperbarui",
+      data: journal,
+    });
+  } catch (error) {
+    serverError(res, "Gagal memperbarui status");
+  }
+};
+
 module.exports = {
   getJournals,
   getJournalById,
   createJournal,
   updateJournal,
+  updateJournalStatus,
   deleteJournal,
 };
