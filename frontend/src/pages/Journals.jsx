@@ -8,7 +8,7 @@ import {
   BookOpen
 } from "lucide-react";
 
-const API_URL = "http://localhost:5000/api/journals";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/journals`;
 
 function Journals() {
   const [journals, setJournals] = useState([]);
